@@ -1,6 +1,7 @@
 sim/*.vvp
 sim/*.vcd
-sim/samples.txt
+sim/samples*.txt
+sim/sine_lut.mem
 __pycache__/
 *.pyc
 sim/*.wav
