@@ -4,9 +4,17 @@ AUDIO_DIR := audio
 TB := tb_synth_top
 TOP_MODULES := $(RTL_DIR)/synth_top.v
 
-.PHONY: all sim wave wav clean
+.PHONY: all sim wave wav clean phase2
 
 all: wav
+
+phase2:
+	iverilog -g2012 -o $(SIM_DIR)/tb_nco.vvp $(SIM_DIR)/tb_nco.v $(RTL_DIR)/nco.v
+	cd $(SIM_DIR) && ln -sf ../$(RTL_DIR)/sine_lut.mem . && vvp tb_nco.vvp
+	cd $(SIM_DIR) && python3 render_wav.py samples_a2.txt samples_a2.wav
+	cd $(SIM_DIR) && python3 render_wav.py samples_a4.txt samples_a4.wav
+	cd $(SIM_DIR) && python3 render_wav.py samples_a6.txt samples_a6.wav
+	cd $(SIM_DIR) && python3 check_pitch.py
 
 sim: $(SIM_DIR)/$(TB).vvp
 

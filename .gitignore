@@ -3,3 +3,4 @@ sim/*.vcd
 sim/samples.txt
 __pycache__/
 *.pyc
+sim/*.wav
