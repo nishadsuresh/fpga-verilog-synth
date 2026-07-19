@@ -34,5 +34,11 @@ phase3:
 	cd $(SIM_DIR) && ln -sf ../$(RTL_DIR)/sine_lut.mem . && vvp tb_adsr.vvp
 	cd $(SIM_DIR) && python3 check_adsr.py
 
+phase4:
+	iverilog -g2012 -o $(SIM_DIR)/tb_poly.vvp $(SIM_DIR)/tb_poly.v $(RTL_DIR)/nco.v $(RTL_DIR)/adsr.v $(RTL_DIR)/mixer.v
+	cd $(SIM_DIR) && ln -sf ../$(RTL_DIR)/sine_lut.mem . && vvp tb_poly.vvp
+	cd $(SIM_DIR) && python3 render_wav.py samples_poly.txt samples_poly.wav
+	cd $(SIM_DIR) && python3 check_poly.py
+
 clean:
 	rm -f $(SIM_DIR)/*.vvp $(SIM_DIR)/*.vcd $(SIM_DIR)/samples.txt $(AUDIO_DIR)/*.wav

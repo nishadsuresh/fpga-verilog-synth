@@ -7,3 +7,4 @@ sim/sine_lut.mem
 __pycache__/
 *.pyc
 sim/*.wav
+sim/samples_poly.wav
