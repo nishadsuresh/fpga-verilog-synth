@@ -6,7 +6,7 @@ A polyphonic music synthesizer designed at the raw digital-logic level in Verilo
 
 ## Why this exists
 
-Verilog is how real digital hardware actually gets described — this is the least "software-kid" project in the portfolio. Every phase is verified two ways: numerically (FFT pitch measurement, envelope shape checks, clipping checks) and audibly (every phase produces a real WAV you can listen to).
+Verilog is how real digital hardware actually gets described — this is the least "software-kid" project in my portfolio. I verified every phase two ways: numerically (FFT pitch measurement, envelope shape checks, clipping checks) and audibly (every phase produces a real WAV you can listen to).
 
 ## Architecture
 
@@ -57,7 +57,7 @@ make phase5   # UART-MIDI melody, note/timing check
 | A4 | 440.0 Hz | 440.0000 Hz | -0.0000 cents |
 | A6 | 1760.0 Hz | 1760.0000 Hz | +0.0000 cents |
 
-Measured via FFT with parabolic sub-bin interpolation (`sim/check_pitch.py`) — far under the 5-cent target, as expected for a bit-exact NCO/LUT design with no analog imperfections.
+I measured this via FFT with parabolic sub-bin interpolation (`sim/check_pitch.py`) — far under the 5-cent target, as expected for a bit-exact NCO/LUT design with no analog imperfections.
 
 ## Audio demos
 
@@ -74,9 +74,9 @@ Clean note staircase (C4 → D4 → E4 → D4 → C4), each transition landing e
 
 ## A note on Phase 3's verification
 
-The build guide's original acceptance test was "envelope shape matches spec viewed in GTKWave" — a visual check. Since this project was built without a human watching GTKWave in real time, `sim/check_adsr.py` verifies the same thing numerically instead: attack ramps monotonically to max, decay ramps monotonically to the sustain level and holds it exactly, release ramps monotonically to zero. The VCD is still generated (`sim/tb_adsr.vcd`) if you want to look at it directly in GTKWave.
+My original acceptance test was "envelope shape matches spec viewed in GTKWave" — a visual check. Rather than eyeball GTKWave in real time, I wrote `sim/check_adsr.py` to verify the same thing numerically instead: attack ramps monotonically to max, decay ramps monotonically to the sustain level and holds it exactly, release ramps monotonically to zero. The VCD is still generated (`sim/tb_adsr.vcd`) if you want to look at it directly in GTKWave.
 
-**Bug caught during this verification, not before:** the first implementation had a real Verilog bit-width bug — a 16-bit × 24-bit multiply was computed at only 24-bit width (Verilog does not automatically widen the result of `*` to fit the full product), silently overflowing the attack/decay/release ramp calculations. Numeric verification caught it immediately (attack topped out at 46% of max instead of ~100%); a purely visual GTKWave check might have looked "close enough" at a glance. Fixed with explicit wide intermediate values — see the comments in `rtl/adsr.v`.
+**Bug I caught during this verification, not before:** my first implementation had a real Verilog bit-width bug — a 16-bit × 24-bit multiply was computed at only 24-bit width (Verilog does not automatically widen the result of `*` to fit the full product), silently overflowing the attack/decay/release ramp calculations. Numeric verification caught it immediately (attack topped out at 46% of max instead of ~100%); a purely visual GTKWave check might have looked "close enough" at a glance. I fixed it with explicit wide intermediate values — see the comments in `rtl/adsr.v`.
 
 ## Honest limitations
 
