@@ -29,5 +29,10 @@ wav: sim
 	cd $(SIM_DIR) && vvp $(TB).vvp
 	cd $(SIM_DIR) && python3 render_wav.py samples.txt ../$(AUDIO_DIR)/phase1_silence.wav
 
+phase3:
+	iverilog -g2012 -o $(SIM_DIR)/tb_adsr.vvp $(SIM_DIR)/tb_adsr.v $(RTL_DIR)/adsr.v $(RTL_DIR)/waveform_lut.v
+	cd $(SIM_DIR) && ln -sf ../$(RTL_DIR)/sine_lut.mem . && vvp tb_adsr.vvp
+	cd $(SIM_DIR) && python3 check_adsr.py
+
 clean:
 	rm -f $(SIM_DIR)/*.vvp $(SIM_DIR)/*.vcd $(SIM_DIR)/samples.txt $(AUDIO_DIR)/*.wav
