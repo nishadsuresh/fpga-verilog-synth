@@ -1,9 +1,11 @@
 // mixer.v — sums 4 voice samples with guaranteed headroom to avoid overflow.
 // Each voice is first scaled by its own envelope (0..65535 -> ~0..1x), then
 // the 4 scaled voices are summed and right-shifted by 2 (divide by 4): the
-// worst case (all 4 voices simultaneously at +/-32767) sums to at most
-// +/-131068, and 131068>>2 = 32767 exactly -- so overflow is structurally
-// impossible, not just statistically unlikely.
+// true worst case is asymmetric (a signed 16-bit sample ranges -32768..32767),
+// so 4 voices simultaneously at full scale sum to between -131072 and
+// +131068. -131072>>>2 = -32768 and 131068>>>2 = 32767, both exactly in
+// range -- so overflow is structurally impossible, not just statistically
+// unlikely, across the true (not symmetrized) bound.
 //
 // Both multiply operands are explicitly pre-widened to PRODUCT_WIDTH before
 // the `*` -- Verilog's self-determined multiply width does NOT automatically

@@ -2,9 +2,9 @@ RTL_DIR := rtl
 SIM_DIR := sim
 AUDIO_DIR := audio
 TB := tb_synth_top
-TOP_MODULES := $(RTL_DIR)/synth_top.v
+TOP_MODULES := $(RTL_DIR)/synth_top.v $(RTL_DIR)/uart_midi.v $(RTL_DIR)/note_lut.v $(RTL_DIR)/nco.v $(RTL_DIR)/adsr.v $(RTL_DIR)/mixer.v
 
-.PHONY: all sim wave wav clean phase2
+.PHONY: all sim wave wav clean phase2 phase6
 
 all: wav
 
@@ -26,8 +26,12 @@ wave: sim
 	@echo "Run: gtkwave $(SIM_DIR)/tb_synth_top.vcd"
 
 wav: sim
-	cd $(SIM_DIR) && vvp $(TB).vvp
-	cd $(SIM_DIR) && python3 render_wav.py samples.txt ../$(AUDIO_DIR)/phase1_silence.wav
+	cd $(SIM_DIR) && ln -sf ../$(RTL_DIR)/sine_lut.mem . && vvp $(TB).vvp
+	cd $(SIM_DIR) && python3 render_wav.py samples.txt samples.wav
+	cd $(SIM_DIR) && python3 check_synth_top.py
+	cd $(SIM_DIR) && python3 render_wav.py samples.txt ../$(AUDIO_DIR)/synth_top_demo.wav
+
+phase6: wav
 
 phase3:
 	iverilog -g2012 -o $(SIM_DIR)/tb_adsr.vvp $(SIM_DIR)/tb_adsr.v $(RTL_DIR)/adsr.v $(RTL_DIR)/waveform_lut.v
@@ -47,4 +51,4 @@ phase5:
 	cd $(SIM_DIR) && python3 check_melody.py
 
 clean:
-	rm -f $(SIM_DIR)/*.vvp $(SIM_DIR)/*.vcd $(SIM_DIR)/samples.txt $(AUDIO_DIR)/*.wav
+	rm -f $(SIM_DIR)/*.vvp $(SIM_DIR)/*.vcd $(SIM_DIR)/samples*.txt $(SIM_DIR)/envelope*.txt $(SIM_DIR)/waveform_samples.txt $(SIM_DIR)/samples*.wav

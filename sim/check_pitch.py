@@ -8,29 +8,20 @@ import sys
 import wave
 import numpy as np
 
+from fft_utils import dominant_freq
+
 SAMPLE_RATE_HZ = 48_000
 
 
 def measure_frequency(wav_path: str) -> float:
     with wave.open(wav_path, "rb") as wf:
+        assert wf.getnchannels() == 1 and wf.getsampwidth() == 2, \
+            f"{wav_path}: expected mono 16-bit PCM (as render_wav.py always produces), got " \
+            f"{wf.getnchannels()}ch/{wf.getsampwidth()*8}bit"
         n = wf.getnframes()
         raw = wf.readframes(n)
-    samples = np.frombuffer(raw, dtype=np.int16).astype(np.float64)
-
-    windowed = samples * np.hanning(len(samples))
-    spectrum = np.abs(np.fft.rfft(windowed))
-    freqs = np.fft.rfftfreq(len(windowed), d=1 / SAMPLE_RATE_HZ)
-
-    peak_bin = int(np.argmax(spectrum))
-    if peak_bin == 0 or peak_bin == len(spectrum) - 1:
-        return freqs[peak_bin]
-
-    # parabolic interpolation (quadratic fit through peak and its two neighbors)
-    y0, y1, y2 = spectrum[peak_bin - 1], spectrum[peak_bin], spectrum[peak_bin + 1]
-    denom = y0 - 2 * y1 + y2
-    delta = 0.5 * (y0 - y2) / denom if denom != 0 else 0.0
-    bin_width = freqs[1] - freqs[0]
-    return freqs[peak_bin] + delta * bin_width
+    samples = np.frombuffer(raw, dtype=np.int16)
+    return dominant_freq(samples, SAMPLE_RATE_HZ)
 
 
 def cents_error(measured_hz: float, target_hz: float) -> float:

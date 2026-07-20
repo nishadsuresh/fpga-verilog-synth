@@ -17,6 +17,21 @@ module uart_midi #(
 
     localparam integer CYCLES_PER_BIT = CLK_FREQ_HZ / BAUD_RATE;
 
+    // 2-flop synchronizer: rx is an asynchronous external serial line, and
+    // sampling it directly with clk (as an earlier version of this module
+    // did) is a real metastability risk on actual FPGA hardware, not just a
+    // simulation nicety -- everything below reads rx_sync, never raw rx.
+    reg rx_meta, rx_sync;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            rx_meta <= 1'b1; // idle high
+            rx_sync <= 1'b1;
+        end else begin
+            rx_meta <= rx;
+            rx_sync <= rx_meta;
+        end
+    end
+
     // ---------------- UART byte receiver ----------------
     localparam RX_IDLE  = 2'd0;
     localparam RX_START = 2'd1;
@@ -40,14 +55,14 @@ module uart_midi #(
             rx_byte_valid <= 1'b0;
             case (rx_state)
                 RX_IDLE: begin
-                    if (!rx) begin // start bit detected
+                    if (!rx_sync) begin // start bit detected
                         rx_state <= RX_START;
                         cycle_counter <= 0;
                     end
                 end
                 RX_START: begin
                     if (cycle_counter == (CYCLES_PER_BIT / 2)) begin // sample mid-start-bit to confirm
-                        if (!rx) begin
+                        if (!rx_sync) begin
                             rx_state <= RX_DATA;
                             cycle_counter <= 0;
                             bit_index <= 0;
@@ -61,7 +76,7 @@ module uart_midi #(
                 RX_DATA: begin
                     if (cycle_counter == CYCLES_PER_BIT - 1) begin
                         cycle_counter <= 0;
-                        rx_shift <= {rx, rx_shift[7:1]}; // LSB first
+                        rx_shift <= {rx_sync, rx_shift[7:1]}; // LSB first
                         if (bit_index == 3'd7) begin
                             rx_state <= RX_STOP;
                         end else begin
@@ -75,7 +90,7 @@ module uart_midi #(
                     if (cycle_counter == CYCLES_PER_BIT - 1) begin
                         cycle_counter <= 0;
                         rx_state <= RX_IDLE;
-                        if (rx) begin // valid stop bit
+                        if (rx_sync) begin // valid stop bit
                             rx_byte <= rx_shift;
                             rx_byte_valid <= 1'b1;
                         end
@@ -89,6 +104,11 @@ module uart_midi #(
     end
 
     // ---------------- MIDI 3-byte message assembler ----------------
+    // Scope: assumes every status byte is followed by exactly 2 data bytes
+    // (true for Note On/Off, this module's only supported message types).
+    // Any other MIDI message type (Program Change, realtime bytes, etc.)
+    // will desync the assembler, since it has no way to know how many data
+    // bytes a status byte it doesn't recognize is supposed to carry.
     localparam MSG_WAIT_STATUS = 2'd0;
     localparam MSG_WAIT_DATA1  = 2'd1;
     localparam MSG_WAIT_DATA2  = 2'd2;

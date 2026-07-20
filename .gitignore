@@ -1,7 +1,7 @@
 sim/*.vvp
 sim/*.vcd
 sim/samples*.txt
-sim/envelope.txt
+sim/envelope*.txt
 sim/waveform_samples.txt
 sim/sine_lut.mem
 __pycache__/
