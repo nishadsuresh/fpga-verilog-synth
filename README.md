@@ -99,3 +99,20 @@ My original acceptance test was "envelope shape matches spec viewed in GTKWave" 
 ## One-line summary
 
 I designed a synthesizer in Verilog at the digital-logic level — NCO, ADSR envelope, a proven 4-voice mixer, and a UART-MIDI parser, wired into a real monophonic MIDI-in-to-audio-out top level — and verified its pitch accuracy, envelope shape, voice mixing, and note timing entirely in HDL simulation, catching and fixing two real bugs (a bit-width truncation and an envelope-retrigger click) along the way.
+
+
+## References
+
+Sources used to design, validate, and cross-check this project's methodology:
+
+[1] Analog Devices, "MT-085 Tutorial: Fundamentals of Direct Digital Synthesis (DDS)," 2009. https://www.analog.com/media/en/training-seminars/tutorials/MT-085.pdf -- the phase-accumulator + lookup-table technique this synth's `nco.v` implements.
+
+[2] Analog Devices, "A Technical Tutorial on Digital Signal Synthesis," 1999. https://www.analog.com/media/cn/training-seminars/tutorials/450968421DDS_Tutorial_rev12-2-99.pdf
+
+[3] MIDI Association, "MIDI 1.0 Detailed Specification" (Note On/Off, running status, channel voice messages). https://midi.org/midi-1-0 -- protocol `uart_midi.v` parses.
+
+[4] D. M. Harris and S. L. Harris, Digital Design and Computer Architecture, Morgan Kaufmann / Elsevier. https://www.sciencedirect.com/book/9780123944245/digital-design-and-computer-architecture -- general RTL/Verilog design reference used throughout.
+
+[5] Icarus Verilog project documentation and source. https://steveicarus.github.io/iverilog/ and https://github.com/steveicarus/iverilog -- the simulator this project is verified with (`iverilog` / `vvp`).
+
+[6] GTKWave documentation -- the waveform viewer used to inspect testbench signals during development. http://gtkwave.sourceforge.net/
